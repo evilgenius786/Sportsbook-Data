@@ -29,14 +29,14 @@ def scrape(sport):
         home = f"{line['home']['rotationNumber']} {line['home']['name']}"
         team = {
             away: {
-                "spread": f"{line['lines'][0]['spread']['points']} {line['lines'][0]['spread']['away']}",
-                "total": f"{line['lines'][0]['total']['points']} {line['lines'][0]['total']['away']}",
-                "moneyLine": f"{line['lines'][0]['moneyLine']['away']}",
+                "Spread": f"{line['lines'][0]['spread']['points']} {line['lines'][0]['spread']['away']}",
+                "Total": f"{line['lines'][0]['total']['points']} {line['lines'][0]['total']['away']}",
+                "Money": f"{line['lines'][0]['moneyLine']['away']}",
             },
             home: {
-                "spread": f"{line['lines'][0]['spread']['points']} {line['lines'][0]['spread']['home']}",
-                "total": f"{line['lines'][0]['total']['points']} {line['lines'][0]['total']['home']}",
-                "moneyLine": f"{line['lines'][0]['moneyLine']['home']}",
+                "Spread": f"{line['lines'][0]['spread']['points']} {line['lines'][0]['spread']['home']}",
+                "Total": f"{line['lines'][0]['total']['points']} {line['lines'][0]['total']['home']}",
+                "Money": f"{line['lines'][0]['moneyLine']['home']}",
             }
         }
         teams.append(team)

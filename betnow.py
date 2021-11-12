@@ -38,12 +38,12 @@ def scrape(sp):
                     team1[0].text.strip(): {
                         "Spread": team1[1].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
                         "Total": team1[2].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
-                        "Money Line": team1[3].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
+                        "Money": team1[3].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
                     },
                     team2[0].text.strip(): {
                         "Spread": team2[1].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
                         "Total": team2[2].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
-                        "Money Line": team2[3].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
+                        "Money": team2[3].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
                     },
                 }
                 teams[f"betnow-{sports[sp]}"].append(data.copy())

@@ -38,14 +38,14 @@ def scrape(sport):
             home = f"{game['Hnum']} {game['Htm']}"
             data = {
                 visitor: {
-                    "spread": f"{game['Lines'][0]['Vsprdt']} {game['Lines'][0]['Vsprdoddst']}",
-                    "total": f"{game['Lines'][0]['Ovt']} {game['Lines'][0]['Ovoddst']}",
-                    "money": f"{game['Lines'][0]['Voddst']}"
+                    "Spread": f"{game['Lines'][0]['Vsprdt']} {game['Lines'][0]['Vsprdoddst']}",
+                    "Total": f"{game['Lines'][0]['Ovt']} {game['Lines'][0]['Ovoddst']}",
+                    "Money": f"{game['Lines'][0]['Voddst']}"
                 },
                 home: {
-                    "spread": f"{game['Lines'][0]['Hsprdt']} {game['Lines'][0]['Hsprdoddst']}",
-                    "total": f"{game['Lines'][0]['Unt']} {game['Lines'][0]['Unoddst']}",
-                    "money": f"{game['Lines'][0]['Hoddst']}"
+                    "Spread": f"{game['Lines'][0]['Hsprdt']} {game['Lines'][0]['Hsprdoddst']}",
+                    "Total": f"{game['Lines'][0]['Unt']} {game['Lines'][0]['Unoddst']}",
+                    "Money": f"{game['Lines'][0]['Hoddst']}"
                 }
             }
             teams.append(data)

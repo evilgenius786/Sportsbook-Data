@@ -18,7 +18,11 @@ sports = {
     "Boxing-UFC/Boxing/1629": "BX"
 
 }
-
+lines = {
+    "Spread": "Spread",
+    "Total": "Total",
+    "Money Line": "Money"
+}
 
 def scrape(sport):
     print("Working on", sport)
@@ -36,8 +40,8 @@ def scrape(sport):
                 i = 0
                 data = {team1: {}, team2: {}}
                 for heading in trws[0].find_all('div', {"class": "res2 th"}):
-                    data[team1][heading.text.strip()] = btns[i].text.strip().replace("\u00a0", " ").replace("\n", " ")
-                    data[team2][heading.text.strip()] = btns[i + 1].text.strip().replace("\u00a0", " ").replace("\n",
+                    data[team1][lines[heading.text.strip()]] = btns[i].text.strip().replace("\u00a0", " ").replace("\n", " ")
+                    data[team2][lines[heading.text.strip()]] = btns[i + 1].text.strip().replace("\u00a0", " ").replace("\n",
                                                                                                                 " ")
                     i += 2
                 teams[f'intertops-{sports[sport]}'].append(data.copy())

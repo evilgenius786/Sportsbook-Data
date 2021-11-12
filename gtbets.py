@@ -15,6 +15,12 @@ sports = {
     "BOX": "BX",
 }
 
+lines = {
+    "spread": "Spread",
+    "moneyline": "Money",
+    "total": "Total"
+}
+
 
 def scrape(sport):
     print("Working on", sport)
@@ -33,19 +39,19 @@ def scrape(sport):
                 if key not in data.keys():
                     data[key] = {}
                 if event['lt'] != "moneyline":
-                    data[key][event['lt']] = f"{event['vps']} {event['vml']}"
-                    data[key]['total'] = f"{event['opts']} {event['oml']}"
+                    data[key][lines[event['lt']]] = f"{event['vps']} {event['vml']}"
+                    data[key]['Total'] = f"{event['opts']} {event['oml']}"
                 else:
-                    data[key][event['lt']] = f"{event['vml']}"
+                    data[key][lines[event['lt']]] = f"{event['vml']}"
                 keys.append((key, f"{event['hrot']} {event['htnm'].title()}"))
                 key = f"{event['hrot']} {event['htnm'].title()}"
                 if key not in data.keys():
                     data[key] = {}
                 if event['lt'] != "moneyline":
-                    data[key][event['lt']] = f"{event['hps']} {event['hml']}"
-                    data[key]['total'] = f"{event['opts']} {event['uml']}"
+                    data[key][lines[event['lt']]] = f"{event['hps']} {event['hml']}"
+                    data[key]['Total'] = f"{event['opts']} {event['uml']}"
                 else:
-                    data[key][event['lt']] = f"{event['hml']}"
+                    data[key][lines[event['lt']]] = f"{event['hml']}"
                 # break
 
         teams = {f"gtbets-{sports[sport]}": []}

@@ -32,7 +32,7 @@ def scrape(sport):
                                                                                                                ""),
                     "Total": row.find('div', {'class': "g-ln col-3 col-lg-2 p-0 line-container"}).text.strip().replace(
                         '\u00bd', " ").replace('\u00a0', ' ').replace(' ', '').replace('\n', ' ').replace('\r', ''),
-                    "Money Line":
+                    "Money":
                         row.find_all('div', {'class': "g-ln col-3 col-lg-2 p-0 border-left-0 line-container"})[
                             1].text.strip(),
                 },
@@ -43,7 +43,7 @@ def scrape(sport):
                     "Total": row.find('div', {
                         'class': "g-ln col-3 p-0 col-lg-2 border-top-0 line-container border-bottom-0"}).text.strip().replace(
                         '\u00bd', " ").replace('\u00a0', ' ').replace(' ', '').replace('\n', ' ').replace('\r', ''),
-                    "Money Line": row.find('div', {
+                    "Money": row.find('div', {
                         'class': "g-ln col-3 p-0 col-lg-2 line-container border-bottom-0"}).text.strip(),
                 }
             }

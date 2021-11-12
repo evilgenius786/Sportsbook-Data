@@ -43,12 +43,12 @@ def scrape(sport):
                 row.find('div', {'class': 'game-line__visitor-team'}).text.strip(): {
                     "Spread": btn1[0].text.strip().replace('&frac12', '.5'),
                     "Total": btn1[2].text.strip().replace('&frac12', '.5'),
-                    "Money Line": btn1[1].text.strip().replace('&frac12', '.5'),
+                    "Money": btn1[1].text.strip().replace('&frac12', '.5'),
                 },
                 row.find('div', {'class': 'game-line__home-team'}).text.strip(): {
                     "Spread": btn2[0].text.strip().replace('&frac12', '.5'),
                     "Total": btn2[2].text.strip().replace('&frac12', '.5'),
-                    "Money Line": btn2[1].text.strip().replace('&frac12', '.5'),
+                    "Money": btn2[1].text.strip().replace('&frac12', '.5'),
                 },
             }
             teams[f"xbet-{sports[sport]}"].append(data.copy())
