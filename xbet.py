@@ -40,12 +40,12 @@ def scrape(sport):
                 'button')
             btn2 = row.find('div', {'class': 'game-line__home-line d-flex justify-content-around'}).find_all('button')
             data = {
-                row.find('div', {'class': 'game-line__visitor-team'}).text.strip(): {
+                row.find('div', {'class': 'game-line__visitor-team'}).text.strip().title(): {
                     "Spread": btn1[0].text.strip().replace('&frac12', '.5'),
                     "Total": btn1[2].text.strip().replace('&frac12', '.5'),
                     "Money": btn1[1].text.strip().replace('&frac12', '.5'),
                 },
-                row.find('div', {'class': 'game-line__home-team'}).text.strip(): {
+                row.find('div', {'class': 'game-line__home-team'}).text.strip().title(): {
                     "Spread": btn2[0].text.strip().replace('&frac12', '.5'),
                     "Total": btn2[2].text.strip().replace('&frac12', '.5'),
                     "Money": btn2[1].text.strip().replace('&frac12', '.5'),
@@ -58,8 +58,11 @@ def scrape(sport):
     print(json.dumps(teams, indent=4))
     if not os.path.isdir(sports[sport]):
         os.mkdir(sports[sport])
-    with open(f'./{sports[sport]}/xbet.json', 'w') as bfile:
-        json.dump(teams, bfile, indent=4)
+    if len(teams[f"xbet-{sports[sport]}"]) > 0:
+        with open(f'./{sports[sport]}/xbet.json', 'w') as bfile:
+            json.dump(teams, bfile, indent=4)
+    else:
+        print(f"No data for {sport}")
 
 
 def main():

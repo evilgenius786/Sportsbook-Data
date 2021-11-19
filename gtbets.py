@@ -35,7 +35,7 @@ def scrape(sport):
         keys = []
         for event in res['events_games']:
             if "-" not in event['vtnm']:
-                key = f"{event['vrot']} {event['vtnm'].title()}"
+                key = f"{event['vrot']} {event['vtnm'].title()}".title()
                 if key not in data.keys():
                     data[key] = {}
                 if event['lt'] != "moneyline":
@@ -44,7 +44,7 @@ def scrape(sport):
                 else:
                     data[key][lines[event['lt']]] = f"{event['vml']}"
                 keys.append((key, f"{event['hrot']} {event['htnm'].title()}"))
-                key = f"{event['hrot']} {event['htnm'].title()}"
+                key = f"{event['hrot']} {event['htnm'].title()}".title()
                 if key not in data.keys():
                     data[key] = {}
                 if event['lt'] != "moneyline":
@@ -63,8 +63,11 @@ def scrape(sport):
         print(json.dumps(teams, indent=4))
         if not os.path.isdir(sports[sport]):
             os.mkdir(sports[sport])
-        with open(f'./{sports[sport]}/gtbets.json', 'w') as out:
-            json.dump(teams, out, indent=4)
+        if len(teams[f"gtbets-{sports[sport]}"]) > 0:
+            with open(f'./{sports[sport]}/gtbets.json', 'w') as out:
+                json.dump(teams, out, indent=4)
+        else:
+            print(f"No data for {sport}")
     except:
         print("Error", sport, response)
         traceback.print_exc()

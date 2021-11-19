@@ -35,12 +35,12 @@ def scrape(sp):
             if team1[1].text.strip() != "-":
                 team2 = t[1].find_all('div')
                 data = {
-                    team1[0].text.strip(): {
+                    team1[0].text.strip().title(): {
                         "Spread": team1[1].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
                         "Total": team1[2].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
                         "Money": team1[3].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
                     },
-                    team2[0].text.strip(): {
+                    team2[0].text.strip().title(): {
                         "Spread": team2[1].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
                         "Total": team2[2].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
                         "Money": team2[3].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
@@ -50,8 +50,11 @@ def scrape(sp):
                 print(json.dumps(teams, indent=4))
                 if not os.path.isdir(sports[sp]):
                     os.mkdir(sports[sp])
-                with open(f'./{sports[sp]}/betnow.json', 'w') as bfile:
-                    json.dump(teams, bfile, indent=4)
+                if len(teams[f"betnow-{sports[sp]}"]) > 0:
+                    with open(f'./{sports[sp]}/betnow.json', 'w') as bfile:
+                        json.dump(teams, bfile, indent=4)
+                else:
+                    print(f"No data for {sp}")
             # break
         except:
             print("Error", sports[sp], sp)

@@ -34,8 +34,8 @@ def scrape(sport):
         print("Working on", league['Description'])
         teams = []
         for game in league['Games']:
-            visitor = f"{game['Vnum']} {game['Vtm']}"
-            home = f"{game['Hnum']} {game['Htm']}"
+            visitor = f"{game['Vnum']} {game['Vtm']}".title()
+            home = f"{game['Hnum']} {game['Htm']}".title()
             data = {
                 visitor: {
                     "Spread": f"{game['Lines'][0]['Vsprdt']} {game['Lines'][0]['Vsprdoddst']}",
@@ -52,8 +52,11 @@ def scrape(sport):
         print(json.dumps(teams, indent=4))
         if not os.path.isdir(sports[sport]):
             os.mkdir(sports[sport])
-        with open(f"./{sports[sport]}/jazzsports.json", 'w') as out:
-            json.dump({f"jazzsports-{sports[sport]}": teams}, out, indent=4)
+        if len(teams) > 0:
+            with open(f"./{sports[sport]}/jazzsports.json", 'w') as out:
+                json.dump({f"jazzsports-{sports[sport]}": teams}, out, indent=4)
+        else:
+            print(f"No data for {sport}")
 
 
 def main():

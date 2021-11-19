@@ -34,8 +34,8 @@ def scrape(sport):
         teams = {f"intertops-{sports[sport]}": []}
         for trw in trws[1:]:
             try:
-                team1 = trw.find('div', {'class': "ustop"}).text.strip()
-                team2 = trw.find('div', {'class': "usbot"}).text.strip()
+                team1 = trw.find('div', {'class': "ustop"}).text.strip().title()
+                team2 = trw.find('div', {'class': "usbot"}).text.strip().title()
                 btns = trw.find_all('div', {'class': "tablebutton"})
                 i = 0
                 data = {team1: {}, team2: {}}
@@ -51,8 +51,11 @@ def scrape(sport):
         print(json.dumps(teams, indent=4))
         if not os.path.isdir(sports[sport]):
             os.mkdir(sports[sport])
-        with open(f'./{sports[sport]}/intertops.json', 'w') as tfile:
-            json.dump(teams, tfile, indent=4)
+        if len(teams[f'intertops-{sports[sport]}']) > 0:
+            with open(f'./{sports[sport]}/intertops.json', 'w') as tfile:
+                json.dump(teams, tfile, indent=4)
+        else:
+            print(f"No data for {sport}")
     except:
         print("Error", sport)
         traceback.print_exc()

@@ -25,8 +25,8 @@ def scrape(sport):
     lines = json.loads(res)
     teams = []
     for line in lines:
-        away = f"{line['away']['rotationNumber']} {line['away']['name']}"
-        home = f"{line['home']['rotationNumber']} {line['home']['name']}"
+        away = f"{line['away']['rotationNumber']} {line['away']['name']}".title()
+        home = f"{line['home']['rotationNumber']} {line['home']['name']}".title()
         team = {
             away: {
                 "Spread": f"{line['lines'][0]['spread']['points']} {line['lines'][0]['spread']['away']}",
@@ -44,8 +44,11 @@ def scrape(sport):
     print(json.dumps(data, indent=4))
     if not os.path.isdir(sports[sport]):
         os.mkdir(sports[sport])
-    with open(f'./{sports[sport]}/youwager.json', 'w') as outfile:
-        json.dump(data, outfile)
+    if len(data[f"youwager-{sports[sport]}"]) > 0:
+        with open(f'./{sports[sport]}/youwager.json', 'w') as outfile:
+            json.dump(data, outfile)
+    else:
+        print(f"No data for {sport}")
 
 
 def main():

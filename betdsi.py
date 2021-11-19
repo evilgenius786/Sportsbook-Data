@@ -35,7 +35,7 @@ def scrape(auth, cat):
             for event in js['details']['ListEvents']:
                 eventjs = {}
                 for participant in event['ListParticipants']:
-                    key = f"{participant['RotationNumber']} {participant['Name']}"
+                    key = f"{participant['RotationNumber']} {participant['Name']}".title()
                     data = {key: {}}
                     for lines in participant['ListLines']:
                         if lines['Sportsbook'] == "DSI":
@@ -50,8 +50,11 @@ def scrape(auth, cat):
             print(json.dumps(betdsi, indent=4))
             if not os.path.isdir(sports[cat["Abbreviation"]]):
                 os.mkdir(sports[cat["Abbreviation"]])
-            with open(f'./{sports[cat["Abbreviation"]]}/betdsi.json', 'w') as out:
-                json.dump(betdsi, out, indent=4)
+            if len(betdsi[f'betdsi-{cat["Abbreviation"]}']) > 0:
+                with open(f'./{sports[cat["Abbreviation"]]}/betdsi.json', 'w') as out:
+                    json.dump(betdsi, out, indent=4)
+            else:
+                print(f"No data for {cat['Abbreviation']}")
         else:
             print("No sports available",cat['Abbreviation'])
     except:

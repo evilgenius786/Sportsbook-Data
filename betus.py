@@ -26,7 +26,7 @@ def scrape(sport):
         rows = soup.find_all('div', {"class": "game-tbl row"})
         for row in rows:
             data = {
-                f"{row.find('div', {'class': 'away-rotation g-ln col-3 p-1 col-lg-1 d-none d-lg-flex'}).text.strip()} {row.find('span', {'id': 'awayName'}).text.strip()}": {
+                f"{row.find('div', {'class': 'away-rotation g-ln col-3 p-1 col-lg-1 d-none d-lg-flex'}).text.strip()} {row.find('span', {'id': 'awayName'}).text.strip()}".title(): {
                     "Spread": row.find('div', {
                         'class': "g-ln col-3 col-lg-2 p-0 border-left-0 line-container"}).text.strip().replace('\u00bd',
                                                                                                                ""),
@@ -36,7 +36,7 @@ def scrape(sport):
                         row.find_all('div', {'class': "g-ln col-3 col-lg-2 p-0 border-left-0 line-container"})[
                             1].text.strip(),
                 },
-                f"{row.find('div', {'class': 'home-rotation g-ln col-3 p-1 col-lg-1 d-none d-lg-flex border-bottom-0'}).text.strip()} {row.find('span', {'id': 'homeName'}).text.strip()}": {
+                f"{row.find('div', {'class': 'home-rotation g-ln col-3 p-1 col-lg-1 d-none d-lg-flex border-bottom-0'}).text.strip()} {row.find('span', {'id': 'homeName'}).text.strip()}".title(): {
                     "Spread": row.find('div', {
                         'class': "col-3 p-0 col-lg-2 line-container border-bottom-0"}).text.strip().replace('\u00bd',
                                                                                                             ""),
@@ -52,8 +52,11 @@ def scrape(sport):
         print(json.dumps(teams, indent=4))
         if not os.path.isdir(sports[sport]):
             os.mkdir(sports[sport])
-        with open(f'./{sports[sport]}/betus.json', 'w') as bfile:
-            json.dump(teams, bfile, indent=4)
+        if len(teams[f"betus-{sports[sport]}"]) > 0:
+            with open(f'./{sports[sport]}/betus.json', 'w') as bfile:
+                json.dump(teams, bfile, indent=4)
+        else:
+            print(f"No data for {sport}")
     except:
         print("Error", sport)
         traceback.print_exc()
