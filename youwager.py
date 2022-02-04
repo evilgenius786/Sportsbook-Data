@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime, timedelta
 
 import requests
 
@@ -25,6 +26,7 @@ def scrape(sport):
     lines = json.loads(res)
     teams = []
     for line in lines:
+        date = str(datetime.strptime(f"{line['dateTime'].split('.')[0]}", "%Y-%m-%dT%H:%M:%S"))
         away = f"{line['away']['rotationNumber']} {line['away']['name']}".title()
         home = f"{line['home']['rotationNumber']} {line['home']['name']}".title()
         team = {
@@ -32,11 +34,13 @@ def scrape(sport):
                 "Spread": f"{line['lines'][0]['spread']['points']} {line['lines'][0]['spread']['away']}",
                 "Total": f"{line['lines'][0]['total']['points']} {line['lines'][0]['total']['away']}",
                 "Money": f"{line['lines'][0]['moneyLine']['away']}",
+                "Date": date
             },
             home: {
                 "Spread": f"{line['lines'][0]['spread']['points']} {line['lines'][0]['spread']['home']}",
                 "Total": f"{line['lines'][0]['total']['points']} {line['lines'][0]['total']['home']}",
                 "Money": f"{line['lines'][0]['moneyLine']['home']}",
+                "Date": date
             }
         }
         teams.append(team)

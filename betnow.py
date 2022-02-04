@@ -4,6 +4,7 @@ import traceback
 
 import requests
 from bs4 import BeautifulSoup
+from dateutil.parser import parse
 
 url = "https://www.betnow.eu/sportsbook-info/"
 sports = {
@@ -28,22 +29,30 @@ def scrape(sp):
     soup = BeautifulSoup(content, 'lxml')
     teams = {f"betnow-{sports[sp]}": []}
     divs = soup.find_all('div', {"class": "searchContent"})
+    date = ""
     for div in divs:
+        try:
+            date = div.find("div", {"class": "col-md-4 col-xs-12"}).text.strip()
+        except:
+            pass
         try:
             t = div.find_all('div', {'class': 'odd-info-teams'})
             team1 = t[0].find_all('div')
             if team1[1].text.strip() != "-":
+                dt = str(parse(f'{date} {div.find("div", {"class": "odd-time col-md-12"}).text.strip()}'.strip()))
                 team2 = t[1].find_all('div')
                 data = {
                     team1[0].text.strip().title(): {
                         "Spread": team1[1].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
                         "Total": team1[2].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
                         "Money": team1[3].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
+                        "Date": dt
                     },
                     team2[0].text.strip().title(): {
                         "Spread": team2[1].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
                         "Total": team2[2].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
                         "Money": team2[3].text.strip().replace('½', '.5').replace('\n( ', ' ').replace(' )', ''),
+                        "Date": dt
                     },
                 }
                 teams[f"betnow-{sports[sp]}"].append(data.copy())
@@ -69,14 +78,13 @@ def main():
 
 def logo():
     os.system('color 0a')
-    print("""
-         _______    _______  ___________  _____  ___      ______    __   __  ___ 
-        |   _  "\  /"     "|("     _   ")(\\"   \|"  \    /    " \  |"  |/  \|  "|
-        (. |_)  :)(: ______) )__/  \\__/ |.\\\\   \    |  // ____  \ |'  /    \:  |
-        |:     \/  \/    |      \\\\_ /    |: \.   \\\\  | /  /    ) :)|: /'        |
-        (|  _  \\\\  // ___)_     |.  |    |.  \    \. |(: (____/ //  \//  /\\'    |
-        |: |_)  :)(:      "|    \:  |    |    \    \ | \        /   /   /  \\\\   |
-        (_______/  \_______)     \__|     \___|\____\)  \\"_____/   |___/    \___|
+    print(r"""
+                __________        __     _______                 
+                \______   \ _____/  |_   \      \   ______  _  __
+                 |    |  _// __ \   __\  /   |   \ /  _ \ \/ \/ /
+                 |    |   \  ___/|  |   /    |    (  <_> )     / 
+                 |______  /\___  >__|   \____|__  /\____/ \/\_/  
+                        \/     \/               \/               
 ==============================================================================================
                     BetNow scraper by : github.com/evilgenius786
 ==============================================================================================

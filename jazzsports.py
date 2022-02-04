@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime, timedelta
 
 import requests
 
@@ -36,16 +37,19 @@ def scrape(sport):
         for game in league['Games']:
             visitor = f"{game['Vnum']} {game['Vtm']}".title()
             home = f"{game['Hnum']} {game['Htm']}".title()
+            date = str(datetime.strptime(f"{game['Gmdt']} {game['Gmtm']}", "%Y%m%d %H:%M:%S") + timedelta(hours=3))
             data = {
                 visitor: {
                     "Spread": f"{game['Lines'][0]['Vsprdt']} {game['Lines'][0]['Vsprdoddst']}",
                     "Total": f"{game['Lines'][0]['Ovt']} {game['Lines'][0]['Ovoddst']}",
-                    "Money": f"{game['Lines'][0]['Voddst']}"
+                    "Money": f"{game['Lines'][0]['Voddst']}",
+                    "Date": date
                 },
                 home: {
                     "Spread": f"{game['Lines'][0]['Hsprdt']} {game['Lines'][0]['Hsprdoddst']}",
                     "Total": f"{game['Lines'][0]['Unt']} {game['Lines'][0]['Unoddst']}",
-                    "Money": f"{game['Lines'][0]['Hoddst']}"
+                    "Money": f"{game['Lines'][0]['Hoddst']}",
+                    "Date": date
                 }
             }
             teams.append(data)
@@ -68,11 +72,11 @@ def main():
 
 def logo():
     os.system('color 0a')
-    print("""
+    print(r"""
    $$$$$\                                      $$$$$$\                                 $$\               
    \__$$ |                                    $$  __$$\                                $$ |              
       $$ | $$$$$$\  $$$$$$$$\ $$$$$$$$\       $$ /  \__| $$$$$$\   $$$$$$\   $$$$$$\ $$$$$$\    $$$$$$$\ 
-      $$ | \____$$\ \____$$  |\____$$  |      \$$$$$$\  $$  __$$\ $$  __$$\ $$  __$$\\\\_$$  _|  $$  _____|
+      $$ | \____$$\ \____$$  |\____$$  |      \$$$$$$\  $$  __$$\ $$  __$$\ $$  __$$\\_$$  _|  $$  _____|
 $$\   $$ | $$$$$$$ |  $$$$ _/   $$$$ _/        \____$$\ $$ /  $$ |$$ /  $$ |$$ |  \__| $$ |    \$$$$$$\  
 $$ |  $$ |$$  __$$ | $$  _/    $$  _/         $$\   $$ |$$ |  $$ |$$ |  $$ |$$ |       $$ |$$\  \____$$\ 
 \$$$$$$  |\$$$$$$$ |$$$$$$$$\ $$$$$$$$\       \$$$$$$  |$$$$$$$  |\$$$$$$  |$$ |       \$$$$  |$$$$$$$  |
@@ -92,8 +96,8 @@ ________________________________________________________________________________
 
 
 def loadLeagues():
-    with open('leagues.json') as lfile:
-        res = json.load(lfile)
+    # with open('leagues.json') as lfile:
+    #     res = json.load(lfile)
     res = json.loads(requests.post(f'{api}/GetActiveLeagues', json={"Player": "1JAZZMAST"}).text)
     print(json.dumps(res, indent=4))
     with open('leagues.json', 'w') as lfile:

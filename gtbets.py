@@ -1,6 +1,7 @@
 import json
 import os
 import traceback
+from datetime import datetime, timedelta
 
 import requests
 
@@ -31,13 +32,14 @@ def scrape(sport):
     #     response = infile.read()
     try:
         res = json.loads(response)
+        # print(json.dumps(res, indent=4))
         data = {}
         keys = []
         for event in res['events_games']:
             if "-" not in event['vtnm']:
                 key = f"{event['vrot']} {event['vtnm'].title()}".title()
                 if key not in data.keys():
-                    data[key] = {}
+                    data[key] = {"Date": str(datetime.strptime(event['dt'], "%Y-%m-%dT%H:%M:%SZ") - timedelta(hours=5))}
                 if event['lt'] != "moneyline":
                     data[key][lines[event['lt']]] = f"{event['vps']} {event['vml']}"
                     data[key]['Total'] = f"{event['opts']} {event['oml']}"
@@ -46,7 +48,7 @@ def scrape(sport):
                 keys.append((key, f"{event['hrot']} {event['htnm'].title()}"))
                 key = f"{event['hrot']} {event['htnm'].title()}".title()
                 if key not in data.keys():
-                    data[key] = {}
+                    data[key] = {"Date": str(datetime.strptime(event['dt'], "%Y-%m-%dT%H:%M:%SZ") - timedelta(hours=5))}
                 if event['lt'] != "moneyline":
                     data[key][lines[event['lt']]] = f"{event['hps']} {event['hml']}"
                     data[key]['Total'] = f"{event['opts']} {event['uml']}"
@@ -81,7 +83,7 @@ def main():
 
 def logo():
     os.system('color 0a')
-    print("""
+    print(r"""
       ___________  ___      __    
      / ___/_  __/ / _ )___ / /____
     / (_ / / /   / _  / -_) __(_-<

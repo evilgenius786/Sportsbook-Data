@@ -2,11 +2,11 @@ import datetime
 import json
 import os
 import re
+import shutil
 import threading
 import time
 import traceback
 
-from flask import Flask, send_from_directory
 
 import betdsi
 import betnow
@@ -14,30 +14,17 @@ import betus
 import gtbets
 import intertops
 import jazzsports
-import mybookie
+# import mybookie
 import xbet
 import youwager
 
-app = Flask(__name__)
 
-try:
-    with open('map.json') as mfile:
-        mapteam = json.load(mfile)
-except:
-    mapteam = {}
-
-
-@app.route('/', defaults=dict(filename=None))
-@app.route('/<path:filename>', methods=['GET', 'POST'])
-def index(filename):
-    filename = filename or 'index.html'
-    # if request.method == 'GET':
-    return send_from_directory('.', filename)
-
+mapteam = {}
 
 def createHtml():
     html = f"""<html>
     <head>
+     <meta http-equiv="refresh" content="10" />
         <title>Sportsbook Data - BetDSI, BetNow, BetUS, GTbets, InterTops, JazzSports, MyBookie, xBet, YouWager  </title>
         <link rel="icon" type="image/x-icon" href="/sports.png">
         <b>Last updated: {datetime.datetime.now()}</b>
@@ -56,20 +43,23 @@ def createHtml():
         </tr>"""
     with open('result.json') as rfile:
         for result in json.load(rfile):
+            print("result",result)
             html += f"""<tr>
-            <td>{result['Over']}</td>
-            <td>{result['OverInfo']['Value']} - O</td>
-            <td>{result['UnderInfo']['Value']} - U</td>
+            <td>{result['Over']} - O</td>
+            <td>{result['OverInfo']['Value']}</td>
+            <td>{result['UnderInfo']['Value']}</td>
         </tr>
         <tr>
-            <td>{result['Under']}</td>
+            <td>{result['Under']} - U</td>
             <td><img width="100px" src="./.img/{result['OverInfo']['Service']}.png"></td>
             <td><img width="100px" src="./.img/{result['UnderInfo']['Service']}.png"></td>
         </tr>
         <tr>
             <td colspan="3">Sport: <b>{result['OverInfo']['Sport']}</b>\tLine: <b>{result['Line']}</b>\tArb: <b>{result['Arb']}</b>\tInv: <b>{result['Investment']}</b>\tProf: <b>{result['Profit']}</b></td>
         </tr>
-        <tr style="height: 20px"></tr>"""
+       
+<tr><td  colspan="3">Date: {result['OverInfo']["Date"]}</td></tr>
+ <tr style="height: 20px"></tr>"""
         html += """</table>
 </body>
 </html>"""
@@ -89,12 +79,18 @@ def main():
 
 
 def getFreshData():
+    for directory in os.listdir('./'):
+        if os.path.isdir(directory) and not directory.startswith('.') and not directory.startswith('_'):
+            shutil.rmtree(directory)
+        if directory.endswith('.json'):
+            os.remove(directory)
     print(datetime.datetime.now(), "Fetching live data...")
     threads = [threading.Thread(target=betus.main), threading.Thread(target=betdsi.main),
                threading.Thread(target=betnow.main), threading.Thread(target=gtbets.main),
                threading.Thread(target=intertops.main), threading.Thread(target=jazzsports.main),
-               threading.Thread(target=mybookie.main), threading.Thread(target=xbet.main),
-               threading.Thread(target=youwager.main)]
+               threading.Thread(target=youwager.main), threading.Thread(target=xbet.main),
+               # threading.Thread(target=mybookie.main)
+               ]
     for thread in threads:
         thread.start()
     for thread in threads:
@@ -113,7 +109,6 @@ def processOdds():
             try:
                 odd1 = float(highest[smt][team]['Value'].split()[-1])
                 odd2 = float(highest[smt][mapteam[team]]['Value'].split()[-1])
-                # print("Odd1", odd1, "Odd2", odd2)
                 if odd1 != 0 and odd2 != 0:
                     arb = (100 / odd1) + (100 / odd2)
                     data = {
@@ -170,10 +165,10 @@ def processFiles():
                     data[smt] = {}
                 for team in teams.keys():
                     # if team not in data[smt].keys():
-                    data[smt][team] = {"Value": "0", "Service": "None","Sport":""}
+                    data[smt][team] = {"Value": "0", "Service": "None", "Sport": ""}
                     # break
                     # if teams[team] not in data[smt].keys():
-                    data[smt][teams[team]] = {"Value": "0", "Service": "None","Sport":""}
+                    data[smt][teams[team]] = {"Value": "0", "Service": "None", "Sport": ""}
                     # break
             # print("=============================================")
             # print("Data: ", json.dumps(data, indent=4))
@@ -188,7 +183,7 @@ def processFiles():
                                     data[smt][team]['Value'].split()[-1]) < float(
                                 games[service][team][smt].split()[-1]):
                                 data[smt][team] = {"Value": games[service][team][smt], "Service": service,
-                                                   "Sport": games[service][team]['Sport']}
+                                                   "Sport": games[service][team]['Sport'],"Date":games[service][team]["Date"]}
                         if teams[team] in games[service].keys():
                             if data[smt][team]['Service'] != service and float(
                                     data[smt][teams[team]]['Value'].split()[-1]) < float(
@@ -196,7 +191,7 @@ def processFiles():
                                 try:
                                     data[smt][teams[team]] = {"Value": games[service][teams[team]][smt],
                                                               "Service": service,
-                                                              "Sport": games[service][teams[team]]['Sport']}
+                                                              "Sport": games[service][teams[team]]['Sport'],"Date":games[service][team]["Date"]}
                                 except:
                                     traceback.print_exc()
                                     # print("Error...")
@@ -297,7 +292,7 @@ def convertOdds():
                     newjs = []
                     with open(f'./{directory}/{file}', encoding='utf8') as jfile:
                         js = json.load(jfile)
-                        # print(json.dumps(js, indent=4))
+                        # input(json.dumps(js, indent=4))
                         key = [k for k in js.keys()][0]
                         for league in js[key]:
                             lkeys = [k for k in league.keys()]
@@ -307,17 +302,21 @@ def convertOdds():
                                 newleague = {
                                     "Team1": {
                                         "Name": mapteam[lkeys[0]],
-                                        "Spread": getres(team1["Spread"] if "Spread" in team1.keys() else "0 0"),
+                                        "Spread": getres("0 0" if "Spread" not in team1.keys() or team1["Spread"] == "" else (team1['Spread'] if "ev" not in team1['Spread'].lower() else f"{team1['Spread'].split(' ')[0]} {team2['Spread'].split(' ')[1].replace('u', 'o')}")),
                                         "Money": getres(team1["Money"] if "Money" in team1.keys() else "0"),
-                                        "Total": getres(team1["Total"] if "Total" in team1.keys() else "0 0")
+                                        "Total": getres("0 0" if "Total" not in team1.keys() or team1["Total"] == "" else (team1['Total'] if "ev" not in team1['Total'].lower() else f"{team1['Total'].split(' ')[0]} {team2['Total'].split(' ')[1].replace('u', 'o')}")),
+                                        "Date":team1["Date"]
                                     },
                                     "Team2": {
                                         "Name": mapteam[lkeys[1]],
-                                        "Spread": getres(team2["Spread"] if "Spread" in team2.keys() else "0 0"),
+                                        "Spread": getres("0 0" if "Spread" not in team2.keys() or team2["Spread"] == "" else (team2['Spread'] if "ev" not in team2['Spread'].lower() else f"{team2['Spread'].split(' ')[0]} {team1['Spread'].split(' ')[1].replace('u', 'o')}")),
                                         "Money": getres(team2["Money"] if "Money" in team2.keys() else "0"),
-                                        "Total": getres(team2["Total"] if "Total" in team2.keys() else "0 0")
+                                        "Total": getres("0 0" if "Total" not in team2.keys() or team2["Total"] == "" else (team2['Total'] if "ev" not in team2['Total'].lower() else f"{team2['Total'].split(' ')[0]} {team1['Total'].split(' ')[1].replace('u', 'o')}")),
+                                        "Date": team2["Date"]
                                     },
+
                                 }
+
                                 newjs.append(newleague)
                             except:
                                 print("Error", team1)
@@ -347,15 +346,9 @@ def getres(res=""):
     return res
 
 
-def apprun():
-    app.run(host="0.0.0.0", port=80)
-
-
 if __name__ == '__main__':
-    threading.Thread(target=apprun).start()
-    while True:
+    try:
         main()
-        x = 10000
-        print(datetime.datetime.now(), f"Waiting for {x} seconds...")
-        time.sleep(x)
-        print(datetime.datetime.now(), "Wait finished, starting again!")
+    except:
+        traceback.print_exc()
+        time.sleep(1)

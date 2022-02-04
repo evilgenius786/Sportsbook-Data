@@ -1,6 +1,7 @@
 import json
 import os
 import traceback
+from datetime import datetime, timedelta
 
 import requests
 
@@ -36,7 +37,7 @@ def scrape(auth, cat):
                 eventjs = {}
                 for participant in event['ListParticipants']:
                     key = f"{participant['RotationNumber']} {participant['Name']}".title()
-                    data = {key: {}}
+                    data = {key: {"Date": str(datetime.strptime(event["Date"], '%Y-%m-%dT%H:%M:%S')+timedelta(hours=3))}}
                     for lines in participant['ListLines']:
                         if lines['Sportsbook'] == "DSI":
                             if lines['LinesType'] != "Money":

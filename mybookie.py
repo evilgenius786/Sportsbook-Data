@@ -1,6 +1,7 @@
 import json
 import os
 import traceback
+from datetime import datetime
 
 import requests
 from bs4 import BeautifulSoup
@@ -33,7 +34,7 @@ def scrape(sport):
         #     content = tfile.read()
         soup = BeautifulSoup(content, 'lxml')
         teams = {f"mybookie-{sports[sport]}": []}
-        rows = soup.find_all('div', {"class": "row pt-3"})
+        rows = soup.find_all('div', {"class": "game-line py-3"})
         # print(rows)
         for row in rows:
             try:
@@ -41,16 +42,21 @@ def scrape(sport):
                     'button')
                 btn2 = row.find('div', {'class': 'game-line__home-line d-flex justify-content-around'}).find_all(
                     'button')
+                date = str(datetime.strptime(
+                    f"{row.find('span', {'class': 'game-line__time__date__hour dynamic_date change__timer sportsbook__line-date'})['data-time']}",
+                    "%Y-%m-%d %H:%M:%S"))
                 data = {
                     row.find('div', {'class': 'game-line__visitor-team'}).text.strip().title(): {
                         "Spread": btn1[0].text.strip().replace('&frac12', '.5'),
                         "Total": btn1[2].text.strip().replace('&frac12', '.5'),
                         "Money": btn1[1].text.strip().replace('&frac12', '.5'),
+                        "Date": date
                     },
                     row.find('div', {'class': 'game-line__home-team'}).text.strip().title(): {
                         "Spread": btn2[0].text.strip().replace('&frac12', '.5'),
                         "Total": btn2[2].text.strip().replace('&frac12', '.5'),
                         "Money": btn2[1].text.strip().replace('&frac12', '.5'),
+                        "Date": date
                     },
                 }
                 teams[f"mybookie-{sports[sport]}"].append(data.copy())
@@ -60,7 +66,7 @@ def scrape(sport):
         print(json.dumps(teams, indent=4))
         if not os.path.isdir(sports[sport]):
             os.mkdir(sports[sport])
-        if len(teams[f"mybookie-{sports[sport]}"])>0:
+        if len(teams[f"mybookie-{sports[sport]}"]) > 0:
             with open(f'./{sports[sport]}/mybookie.json', 'w') as bfile:
                 json.dump(teams, bfile, indent=4)
         else:
@@ -78,7 +84,7 @@ def main():
 
 def logo():
     os.system('color 0a')
-    print("""
+    print(r"""
            *                                         
          (  `           (                )           
          )\))(   (    ( )\            ( /( (     (   

@@ -1,6 +1,7 @@
 import json
 import os
 import traceback
+from datetime import datetime, timedelta
 
 import requests
 from bs4 import BeautifulSoup
@@ -24,9 +25,10 @@ lines = {
     "Money Line": "Money"
 }
 
+
 def scrape(sport):
     print("Working on", sport)
-    url = f"https://sports.intertops.eu/en/Bets/{sport}"
+    url = f"https://sports.everygame.eu/en/Bets/{sport}"
     content = requests.get(url).content
     soup = BeautifulSoup(content, 'lxml')
     try:
@@ -38,16 +40,23 @@ def scrape(sport):
                 team2 = trw.find('div', {'class': "usbot"}).text.strip().title()
                 btns = trw.find_all('div', {'class': "tablebutton"})
                 i = 0
-                data = {team1: {}, team2: {}}
+                date = str(
+                    datetime.strptime(trw.find('span', {"class": "eventdatetime"})['title'], '%m/%d/%Y<br/>%I:%M %p')-timedelta(hours=5))
+                data = {
+                    team1: {"Date": date},
+                    team2: {"Date": date}
+                }
                 for heading in trws[0].find_all('div', {"class": "res2 th"}):
-                    data[team1][lines[heading.text.strip()]] = btns[i].text.strip().replace("\u00a0", " ").replace("\n", " ")
-                    data[team2][lines[heading.text.strip()]] = btns[i + 1].text.strip().replace("\u00a0", " ").replace("\n",
-                                                                                                                " ")
+                    data[team1][lines[heading.text.strip()]] = btns[i].text.strip().replace("\u00a0", " ").replace("\n",
+                                                                                                                   " ")
+                    data[team2][lines[heading.text.strip()]] = btns[i + 1].text.strip().replace("\u00a0", " ").replace(
+                        "\n",
+                        " ")
                     i += 2
                 teams[f'intertops-{sports[sport]}'].append(data.copy())
                 # break
             except:
-                pass
+                traceback.print_exc()
         print(json.dumps(teams, indent=4))
         if not os.path.isdir(sports[sport]):
             os.mkdir(sports[sport])
@@ -69,10 +78,10 @@ def main():
 
 def logo():
     os.system('color 0a')
-    print("""
+    print(r"""
     .___        __                 __                       
     |   | _____/  |_  ____________/  |_  ____ ______  ______
-    |   |/    \   __\/ __ \_  __ \   __\/  _ \\\\____ \/  ___/
+    |   |/    \   __\/ __ \_  __ \   __\/  _ \\____ \/  ___/
     |   |   |  \  | \  ___/|  | \/|  | (  <_> )  |_> >___ \ 
     |___|___|  /__|  \___  >__|   |__|  \____/|   __/____  >
              \/          \/                   |__|       \/ 
