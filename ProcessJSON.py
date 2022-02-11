@@ -7,7 +7,6 @@ import threading
 import time
 import traceback
 
-
 import betdsi
 import betnow
 import betus
@@ -18,8 +17,8 @@ import jazzsports
 import xbet
 import youwager
 
-
 mapteam = {}
+
 
 def createHtml():
     html = f"""<html>
@@ -43,7 +42,7 @@ def createHtml():
         </tr>"""
     with open('result.json') as rfile:
         for result in json.load(rfile):
-            print("result",result)
+            print("result", result)
             html += f"""<tr>
             <td>{result['Over']} - O</td>
             <td>{result['OverInfo']['Value']}</td>
@@ -68,7 +67,7 @@ def createHtml():
 
 
 def main():
-    # getFreshData()
+    getFreshData()
     print(datetime.datetime.now(), "Processing files..")
     createMap()
     convertOdds()
@@ -82,8 +81,6 @@ def getFreshData():
     for directory in os.listdir('./'):
         if os.path.isdir(directory) and not directory.startswith('.') and not directory.startswith('_'):
             shutil.rmtree(directory)
-        if directory.endswith('.json'):
-            os.remove(directory)
     print(datetime.datetime.now(), "Fetching live data...")
     threads = [threading.Thread(target=betus.main), threading.Thread(target=betdsi.main),
                threading.Thread(target=betnow.main), threading.Thread(target=gtbets.main),
@@ -183,7 +180,8 @@ def processFiles():
                                     data[smt][team]['Value'].split()[-1]) < float(
                                 games[service][team][smt].split()[-1]):
                                 data[smt][team] = {"Value": games[service][team][smt], "Service": service,
-                                                   "Sport": games[service][team]['Sport'],"Date":games[service][team]["Date"]}
+                                                   "Sport": games[service][team]['Sport'],
+                                                   "Date": games[service][team]["Date"]}
                         if teams[team] in games[service].keys():
                             if data[smt][team]['Service'] != service and float(
                                     data[smt][teams[team]]['Value'].split()[-1]) < float(
@@ -191,9 +189,11 @@ def processFiles():
                                 try:
                                     data[smt][teams[team]] = {"Value": games[service][teams[team]][smt],
                                                               "Service": service,
-                                                              "Sport": games[service][teams[team]]['Sport'],"Date":games[service][team]["Date"]}
+                                                              "Sport": games[service][teams[team]]['Sport'],
+                                                              "Date": games[service][team]["Date"]}
                                 except:
                                     traceback.print_exc()
+                                    print("Error " + str(games[service]))
                                     # print("Error...")
                                     # print(service, team)
                                     # input(json.dumps(games, indent=4))
@@ -222,9 +222,13 @@ def createMap():
                                 try:
                                     for team in league.keys():
                                         lks = [k for k in league.keys()]
-                                        teammap[lks[0]] = lks[1]
-                                        if team not in teams:
-                                            teams.append(team)
+                                        try:
+                                            teammap[lks[0]] = lks[1]
+                                            if team not in teams:
+                                                teams.append(team)
+                                        except:
+                                            # traceback.print_exc()
+                                            print("Error", lks)
                                 except:
                                     traceback.print_exc()
                                     pass
@@ -296,34 +300,53 @@ def convertOdds():
                         key = [k for k in js.keys()][0]
                         for league in js[key]:
                             lkeys = [k for k in league.keys()]
-                            team1 = league[lkeys[0]]
-                            team2 = league[lkeys[1]]
-                            try:
-                                newleague = {
-                                    "Team1": {
-                                        "Name": mapteam[lkeys[0]],
-                                        "Spread": getres("0 0" if "Spread" not in team1.keys() or team1["Spread"] == "" else (team1['Spread'] if "ev" not in team1['Spread'].lower() else f"{team1['Spread'].split(' ')[0]} {team2['Spread'].split(' ')[1].replace('u', 'o')}")),
-                                        "Money": getres(team1["Money"] if "Money" in team1.keys() else "0"),
-                                        "Total": getres("0 0" if "Total" not in team1.keys() or team1["Total"] == "" else (team1['Total'] if "ev" not in team1['Total'].lower() else f"{team1['Total'].split(' ')[0]} {team2['Total'].split(' ')[1].replace('u', 'o')}")),
-                                        "Date":team1["Date"]
-                                    },
-                                    "Team2": {
-                                        "Name": mapteam[lkeys[1]],
-                                        "Spread": getres("0 0" if "Spread" not in team2.keys() or team2["Spread"] == "" else (team2['Spread'] if "ev" not in team2['Spread'].lower() else f"{team2['Spread'].split(' ')[0]} {team1['Spread'].split(' ')[1].replace('u', 'o')}")),
-                                        "Money": getres(team2["Money"] if "Money" in team2.keys() else "0"),
-                                        "Total": getres("0 0" if "Total" not in team2.keys() or team2["Total"] == "" else (team2['Total'] if "ev" not in team2['Total'].lower() else f"{team2['Total'].split(' ')[0]} {team1['Total'].split(' ')[1].replace('u', 'o')}")),
-                                        "Date": team2["Date"]
-                                    },
+                            if len(lkeys) > 1:
+                                team1 = league[lkeys[0]]
+                                try:
+                                    team2 = league[lkeys[1]]
+                                except:
+                                    traceback.print_exc()
+                                    print("Error | ", lkeys)
+                                    # input("Press any key")
+                                    continue
+                                try:
+                                    newleague = {
+                                        "Team1": {
+                                            "Name": mapteam[lkeys[0]],
+                                            "Spread": getres(
+                                                "0 0" if "Spread" not in team1.keys() or team1["Spread"] == "" else (
+                                                    team1['Spread'] if "ev" not in team1[
+                                                        'Spread'].lower() else f"{team1['Spread'].split(' ')[0]} {team2['Spread'].split(' ')[1].replace('u', 'o')}")),
+                                            "Money": getres(team1["Money"] if "Money" in team1.keys() else "0"),
+                                            "Total": getres(
+                                                "0 0" if "Total" not in team1.keys() or team1["Total"] == "" else (
+                                                    team1['Total'] if "ev" not in team1[
+                                                        'Total'].lower() else f"{team1['Total'].split(' ')[0]} {team2['Total'].split(' ')[1].replace('u', 'o')}")),
+                                            "Date": team1["Date"]
+                                        },
+                                        "Team2": {
+                                            "Name": mapteam[lkeys[1]],
+                                            "Spread": getres(
+                                                "0 0" if "Spread" not in team2.keys() or team2["Spread"] == "" else (
+                                                    team2['Spread'] if "ev" not in team2[
+                                                        'Spread'].lower() else f"{team2['Spread'].split(' ')[0]} {team1['Spread'].split(' ')[1].replace('u', 'o')}")),
+                                            "Money": getres(team2["Money"] if "Money" in team2.keys() else "0"),
+                                            "Total": getres(
+                                                "0 0" if "Total" not in team2.keys() or team2["Total"] == "" else (
+                                                    team2['Total'] if "ev" not in team2[
+                                                        'Total'].lower() else f"{team2['Total'].split(' ')[0]} {team1['Total'].split(' ')[1].replace('u', 'o')}")),
+                                            "Date": team2["Date"]
+                                        },
 
-                                }
+                                    }
 
-                                newjs.append(newleague)
-                            except:
-                                print("Error", team1)
-                                print("Error", team2)
-                                traceback.print_exc()
-                                # input("Press any key")
-                            # break
+                                    newjs.append(newleague)
+                                except:
+                                    print("Error", team1)
+                                    print("Error", team2)
+                                    traceback.print_exc()
+                                    # input("Press any key")
+                                # break
                     # print(json.dumps(newjs, indent=4))
                     with open(f"./{directory}/-{file}", 'w') as jfile:
                         json.dump(newjs, jfile, indent=4)

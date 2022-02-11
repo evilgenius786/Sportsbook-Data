@@ -39,7 +39,7 @@ def scrape(sp):
             t = div.find_all('div', {'class': 'odd-info-teams'})
             team1 = t[0].find_all('div')
             if team1[1].text.strip() != "-":
-                dt = str(parse(f'{date} {div.find("div", {"class": "odd-time col-md-12"}).text.strip()}'.strip()))
+                dt = str(parse(f'{date} {div.find("div", {"class": "odd-time col-md-12"}).text.split("@")[0].strip()}'.strip()))
                 team2 = t[1].find_all('div')
                 data = {
                     team1[0].text.strip().title(): {

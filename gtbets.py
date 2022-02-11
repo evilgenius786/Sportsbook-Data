@@ -35,26 +35,27 @@ def scrape(sport):
         # print(json.dumps(res, indent=4))
         data = {}
         keys = []
-        for event in res['events_games']:
-            if "-" not in event['vtnm']:
-                key = f"{event['vrot']} {event['vtnm'].title()}".title()
-                if key not in data.keys():
-                    data[key] = {"Date": str(datetime.strptime(event['dt'], "%Y-%m-%dT%H:%M:%SZ") - timedelta(hours=5))}
-                if event['lt'] != "moneyline":
-                    data[key][lines[event['lt']]] = f"{event['vps']} {event['vml']}"
-                    data[key]['Total'] = f"{event['opts']} {event['oml']}"
-                else:
-                    data[key][lines[event['lt']]] = f"{event['vml']}"
-                keys.append((key, f"{event['hrot']} {event['htnm'].title()}"))
-                key = f"{event['hrot']} {event['htnm'].title()}".title()
-                if key not in data.keys():
-                    data[key] = {"Date": str(datetime.strptime(event['dt'], "%Y-%m-%dT%H:%M:%SZ") - timedelta(hours=5))}
-                if event['lt'] != "moneyline":
-                    data[key][lines[event['lt']]] = f"{event['hps']} {event['hml']}"
-                    data[key]['Total'] = f"{event['opts']} {event['uml']}"
-                else:
-                    data[key][lines[event['lt']]] = f"{event['hml']}"
-                # break
+        if "events_games" in res.keys():
+            for event in res['events_games']:
+                if "-" not in event['vtnm']:
+                    key = f"{event['vrot']} {event['vtnm'].title()}".title()
+                    if key not in data.keys():
+                        data[key] = {"Date": str(datetime.strptime(event['dt'], "%Y-%m-%dT%H:%M:%SZ") - timedelta(hours=5))}
+                    if event['lt'] != "moneyline":
+                        data[key][lines[event['lt']]] = f"{event['vps']} {event['vml']}"
+                        data[key]['Total'] = f"{event['opts']} {event['oml']}"
+                    else:
+                        data[key][lines[event['lt']]] = f"{event['vml']}"
+                    keys.append((key, f"{event['hrot']} {event['htnm'].title()}"))
+                    key = f"{event['hrot']} {event['htnm'].title()}".title()
+                    if key not in data.keys():
+                        data[key] = {"Date": str(datetime.strptime(event['dt'], "%Y-%m-%dT%H:%M:%SZ") - timedelta(hours=5))}
+                    if event['lt'] != "moneyline":
+                        data[key][lines[event['lt']]] = f"{event['hps']} {event['hml']}"
+                        data[key]['Total'] = f"{event['opts']} {event['uml']}"
+                    else:
+                        data[key][lines[event['lt']]] = f"{event['hml']}"
+                    # break
 
         teams = {f"gtbets-{sports[sport]}": []}
         for x in (sorted(set(keys))):
