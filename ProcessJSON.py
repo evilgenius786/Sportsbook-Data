@@ -190,7 +190,7 @@ def processFiles():
                                     data[smt][teams[team]] = {"Value": games[service][teams[team]][smt],
                                                               "Service": service,
                                                               "Sport": games[service][teams[team]]['Sport'],
-                                                              "Date": games[service][team]["Date"]}
+                                                              "Date": games[service][teams[team]]["Date"]}
                                 except:
                                     traceback.print_exc()
                                     print("Error " + str(games[service]))

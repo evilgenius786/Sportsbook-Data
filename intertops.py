@@ -7,10 +7,11 @@ import requests
 from bs4 import BeautifulSoup
 
 sports = {
+    "Basketball/NBA-Lines/1070": "NBA",
     "American-Football/NFL-Lines/1018": "NFL",
     "American-Football/NCAAF-Lines/1016": "NCAAF",
     "Baseball/MLB-Playoffs/1073": "MLB",
-    "Basketball/NBA-Lines/1070": "NBA",
+
     "Basketball/German-BBL/1468": "GBBL",
     "Basketball/Euroleague/736": "EL",
     "Ice-Hockey/NHL-Lines/1064": "NHL",
@@ -32,16 +33,19 @@ def scrape(sport):
     content = requests.get(url).content
     soup = BeautifulSoup(content, 'lxml')
     try:
-        trws = soup.find_all('div', {"class": "trw"})
+        if '<div class="tbody">' not in str(soup):
+            return
+        trws = soup.find('div', {"class": "tbody"}).find_all('div', {"class": "trw"})
         teams = {f"intertops-{sports[sport]}": []}
-        for trw in trws[1:]:
+        for trw in trws:
             try:
                 team1 = trw.find('div', {'class': "ustop"}).text.strip().title()
                 team2 = trw.find('div', {'class': "usbot"}).text.strip().title()
                 btns = trw.find_all('div', {'class': "tablebutton"})
                 i = 0
                 date = str(
-                    datetime.strptime(trw.find('span', {"class": "eventdatetime"})['title'], '%m/%d/%Y<br/>%I:%M %p')-timedelta(hours=5))
+                    datetime.strptime(trw.find('span', {"class": "eventdatetime"})['title'],
+                                      '%m/%d/%Y<br/>%I:%M %p') - timedelta(hours=5))
                 data = {
                     team1: {"Date": date},
                     team2: {"Date": date}
@@ -56,6 +60,7 @@ def scrape(sport):
                 teams[f'intertops-{sports[sport]}'].append(data.copy())
                 # break
             except:
+                print("Error", sport)
                 traceback.print_exc()
         print(json.dumps(teams, indent=4))
         if not os.path.isdir(sports[sport]):
