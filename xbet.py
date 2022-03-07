@@ -1,27 +1,43 @@
 import json
 import os
+import traceback
 from datetime import datetime
 
 import requests
 from bs4 import BeautifulSoup
 
-sports = {
-    "nfl": "NFL",
-    "nhl": "NHL",
-    "europa-league": "EL",
-    "nba": "NBA",
-    "college-football": "NCAAF",
-    "cfl": "CFL",
-    "mlb": "MLB",
-    "college-baseball": "NCAAB",
-    "wnba": "WNBA",
-    "germany-bbl": "GBBL",
-    "college-hockey": "NCAAH",
-    "atp": "ATP",
-    "wta": "WTA",
-    "boxing": "BX",
-    "ufc": "UFC"
-}
+fetchSports = True
+sjson = "xbet.json"
+try:
+    with open(sjson) as bfile:
+        sports = json.load(bfile)
+except:
+    fetchSports = True
+    traceback.print_exc()
+    sports = {}
+
+
+def getSports():
+    global sports
+    url = f"https://xbet.ag/sportsbook/"
+    soup = BeautifulSoup(requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}).content, 'lxml')
+    data = sports.copy()
+    all_sports = {}
+    for league in soup.find_all('a', {"class": 'nav-link sub-items-menu__body__item__link active request_league'}):
+        key = league.text.strip().split(' ')[0] + getInitial(" ".join(league.text.strip().split(' ')[1:]))
+        all_sports[league['href']] = key
+        if key not in sports.keys():
+            data[league['href']] = key
+    print(json.dumps(all_sports, indent=4))
+    print(json.dumps(data, indent=4))
+    with open(sjson, 'w') as bfile:
+        json.dump(data, bfile, indent=4)
+    with open(sjson) as bfile:
+        sports = json.load(bfile)
+
+
+def getInitial(msg):
+    return ''.join([x[0] for x in msg.split()])
 
 
 def scrape(sport):
@@ -74,6 +90,9 @@ def scrape(sport):
 
 def main():
     logo()
+    if fetchSports:
+        getSports()
+        input("Done")
     for sport in sports.keys():
         scrape(sport)
 

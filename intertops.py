@@ -6,30 +6,48 @@ from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
 
-sports = {
-    "Basketball/NBA-Lines/1070": "NBA",
-    "American-Football/NFL-Lines/1018": "NFL",
-    "American-Football/NCAAF-Lines/1016": "NCAAF",
-    "Baseball/MLB-Playoffs/1073": "MLB",
-
-    "Basketball/German-BBL/1468": "GBBL",
-    "Basketball/Euroleague/736": "EL",
-    "Ice-Hockey/NHL-Lines/1064": "NHL",
-    "Tennis/ATP-US-Open/1167": "ATP",
-    "Tennis/WTA-US-Open/2034": "WTA",
-    "Boxing-UFC/Boxing/1629": "BX"
-
-}
 lines = {
     "Spread": "Spread",
     "Total": "Total",
     "Money Line": "Money"
 }
 
+fetchSports = False
+sjson = "intertops.json"
+try:
+    with open(sjson) as bfile:
+        sports = json.load(bfile)
+except:
+    fetchSports = True
+    traceback.print_exc()
+    sports = {}
+
+
+def getSports():
+    global sports
+    soup = BeautifulSoup(requests.get('https://sports.everygame.eu').content, 'lxml')
+    data = sports.copy()
+    all_sports = {}
+    for li in soup.find_all('li', {"class": "sl"}):
+        key = li.find('a')['href']
+        all_sports[key] = getInitial(li.text)
+        if key not in data.keys():
+            data[key] = getInitial(li.text)
+    print(json.dumps(all_sports, indent=4))
+    print(json.dumps(data, indent=4))
+    with open(sjson, 'w') as bfile:
+        json.dump(data, bfile, indent=4)
+    with open(sjson) as bfile:
+        sports = json.load(bfile)
+
+
+def getInitial(msg):
+    return ''.join([x[0] for x in msg.split()])
+
 
 def scrape(sport):
     print("Working on", sport)
-    url = f"https://sports.everygame.eu/en/Bets/{sport}"
+    url = f"https://sports.everygame.eu/{sport}"
     content = requests.get(url).content
     soup = BeautifulSoup(content, 'lxml')
     try:
@@ -51,17 +69,21 @@ def scrape(sport):
                     team2: {"Date": date}
                 }
                 for heading in trws[0].find_all('div', {"class": "res2 th"}):
-                    data[team1][lines[heading.text.strip()]] = btns[i].text.strip().replace("\u00a0", " ").replace("\n",
-                                                                                                                   " ")
-                    data[team2][lines[heading.text.strip()]] = btns[i + 1].text.strip().replace("\u00a0", " ").replace(
-                        "\n",
-                        " ")
+                    try:
+                        data[team1][lines[heading.text.strip()]] = btns[i].text.strip().replace("\u00a0", " ").replace("\n",
+                                                                                                                       " ")
+                        data[team2][lines[heading.text.strip()]] = btns[i + 1].text.strip().replace("\u00a0", " ").replace(
+                            "\n",
+                            " ")
+                    except:
+                        pass
                     i += 2
                 teams[f'intertops-{sports[sport]}'].append(data.copy())
                 # break
             except:
-                print("Error", sport)
-                traceback.print_exc()
+                # print("Error", sport)
+                # traceback.print_exc()
+                pass
         print(json.dumps(teams, indent=4))
         if not os.path.isdir(sports[sport]):
             os.mkdir(sports[sport])
@@ -77,6 +99,9 @@ def scrape(sport):
 
 def main():
     logo()
+    if fetchSports:
+        getSports()
+        # input("Done")
     for sport in sports.keys():
         scrape(sport)
 

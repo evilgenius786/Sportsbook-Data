@@ -2,23 +2,40 @@ import json
 import os
 import re
 import traceback
-from datetime import timedelta
-
-from dateutil.parser import parse
 
 import requests
 from bs4 import BeautifulSoup
+from dateutil.parser import parse
 
-sports = {
-    'nfl/': "NFL",
-    'ncaaf/': "NCAAF",
-    'football/futures/afl-championship/': "AFL",
-    'basketball/nba/': "NBA",
-    'baseball/mlb/': "MLB",
-    'basketball/euro-cup/': "EL",
-    'ice-hockey/nhl/': "NHL",
-    'boxing/boxing/': 'BX',
-}
+fetchSports = False
+
+try:
+    with open("betus.json") as bfile:
+        sports = json.load(bfile)
+except:
+    fetchSports = True
+    traceback.print_exc()
+    sports = {}
+
+
+def getSports():
+    global sports
+    soup = BeautifulSoup(requests.get('https://www.betus.com.pa/sportsbook/').content, 'lxml')
+    data = sports.copy()
+    all_sports = {}
+    for li in soup.find('ul', {"class": "p-0"}).find_all('li', {"data-link": True}):
+        all_sports[li.find("a").text.strip()] = []
+        for league in li.find_all("li"):
+            lg = li.find("a").text.strip()
+            all_sports[lg].append(league.find("a")['href'])
+            if lg not in data.keys():
+                data[league.find("a")['href']] = league.find("a")['href'].split("/")[-2]
+    print(json.dumps(all_sports, indent=4))
+    print(json.dumps(data, indent=4))
+    with open('betus.json', 'w') as bfile:
+        json.dump(data, bfile, indent=4)
+    with open("betus.json") as bfile:
+        sports = json.load(bfile)
 
 
 def getText(soup, cname):
@@ -69,6 +86,8 @@ def scrape(sport):
 
 
 def main():
+    if fetchSports:
+        getSports()
     logo()
     for sport in sports.keys():
         scrape(sport)

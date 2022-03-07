@@ -7,20 +7,34 @@ from bs4 import BeautifulSoup
 from dateutil.parser import parse
 
 url = "https://www.betnow.eu/sportsbook-info/"
-sports = {
-    'football/nfl/': "NFL",
-    'football/cfl/': "CFL",
-    'football/ncaa-fb/': "NCAAF",
-    'baseball/mlb/': "MLB",
-    'basketball/wnba/': "WNBA",
-    'basketball/nba/': "NBA",
-    'basketball/germany-bbl/': "GBBL",
-    'fighting/ufc/': "UFC",
-    'fighting/boxing/': "BX",
-    'hockey/nhl/': "NHL",
-    'tennis/atp-european-open-matchups/': "ATP",
-    'tennis/wta-tenerife-ladies-open-matchups': "WTA"
-}
+fetchSports = False
+
+
+try:
+    with open("betnow.json") as bfile:
+        sports = json.load(bfile)
+except:
+    fetchSports = True
+    traceback.print_exc()
+    sports = {}
+
+
+def getSports():
+    global sports
+    soup = BeautifulSoup(requests.get(url).content, 'lxml')
+    sport_list = {}
+    data = sports.copy()
+    for ul in soup.find('ul', {"id": "leagueMenu"}).find_all("ul", {"id": True}):
+        sport_list[ul['id']] = []
+        for a in ul.find_all("a"):
+            sport_list[ul['id']].append(a['href'])
+            if a['href'] not in sports.keys():
+                data[a['href']] = a['href'].split("/")[-1]
+    print(json.dumps(sport_list, indent=4))
+    with open("betnow.json", 'w') as bfile:
+        json.dump(data, bfile, indent=4)
+    print(data)
+    sports = data.copy()
 
 
 def scrape(sp):
@@ -39,7 +53,8 @@ def scrape(sp):
             t = div.find_all('div', {'class': 'odd-info-teams'})
             team1 = t[0].find_all('div')
             if team1[1].text.strip() != "-":
-                dt = str(parse(f'{date} {div.find("div", {"class": "odd-time col-md-12"}).text.split("@")[0].strip()}'.strip()))
+                dt = str(parse(
+                    f'{date} {div.find("div", {"class": "odd-time col-md-12"}).text.split("@")[0].strip()}'.strip()))
                 team2 = t[1].find_all('div')
                 data = {
                     team1[0].text.strip().title(): {
@@ -72,6 +87,8 @@ def scrape(sp):
 
 def main():
     logo()
+    if fetchSports:
+        getSports()
     for sp in sports.keys():
         scrape(sp)
 

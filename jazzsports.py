@@ -1,26 +1,47 @@
 import json
 import os
+import traceback
 from datetime import datetime, timedelta
 
 import requests
 
 test = False
 api = "https://betslipapi.isppro.net/api/Guest"
-sports = {
-    724: 'NFL',
-    385: 'CFL',
-    32: 'NCAAF',
-    3: 'NBA',
-    113: 'NCAAB',
-    7: 'NHL',
-    5: 'MLB',
-    731: 'EL',
-    2121: 'CR',
-    342: 'ATP',
-    165: 'WTA',
-    10: 'BX',
-    58: 'UFC'
-}
+
+fetchSports = False
+sjson = "jazzsports.json"
+try:
+    with open(sjson) as bfile:
+        sports = json.load(bfile)
+except:
+    fetchSports = True
+    traceback.print_exc()
+    sports = {}
+
+
+def getSports():
+    global sports
+    res = json.loads(requests.post(f'{api}/GetActiveLeagues', json={"Player": "1JAZZMAST"}).text)
+    print(json.dumps(res, indent=4))
+    all_sports = {}
+    data = sports.copy()
+    for sport in res:
+        # print(json.dumps(s, indent=4))
+        for league in sport['Leagues']:
+            key = f"{sport['Sport']}-{league['IdSport']}-{getInitial(league['LeagueDescription'])}".replace(" ","")
+            all_sports[league['IdLeague']] = key
+            if league['IdLeague'] not in sport.keys():
+                data[league['IdLeague']] = key
+    print(json.dumps(all_sports, indent=4))
+    print(json.dumps(data, indent=4))
+    with open(sjson, 'w') as bfile:
+        json.dump(data, bfile, indent=4)
+    with open(sjson) as bfile:
+        sports = json.load(bfile)
+
+
+def getInitial(msg):
+    return ''.join([x[0] for x in msg.split()])
 
 
 def scrape(sport):
@@ -65,6 +86,9 @@ def scrape(sport):
 
 def main():
     logo()
+    if fetchSports:
+        getSports()
+        input("Done")
     for sport in sports.keys():
         scrape(sport)
         # break
@@ -93,23 +117,6 @@ $$ |  $$ |$$  __$$ | $$  _/    $$  _/         $$\   $$ |$$ |  $$ |$$ |  $$ |$$ |
 [+] Works with API
 ____________________________________________________________________________________________________________
 """)
-
-
-def loadLeagues():
-    # with open('leagues.json') as lfile:
-    #     res = json.load(lfile)
-    res = json.loads(requests.post(f'{api}/GetActiveLeagues', json={"Player": "1JAZZMAST"}).text)
-    print(json.dumps(res, indent=4))
-    with open('leagues.json', 'w') as lfile:
-        json.dump(res, lfile)
-    # leagues = []
-    # for sport in res:
-    #     # print(json.dumps(s, indent=4))
-    #     for league in sport['Leagues']:
-    #         leagues.append(league)
-    # print(json.dumps(leagues, indent=4))
-    # with open('out.json', 'w') as ofile:
-    #     json.dump(leagues, ofile)
 
 
 if __name__ == '__main__':

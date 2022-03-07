@@ -11,17 +11,29 @@ headers = {
     'content-type': 'application/json;charset=UTF-8'
 }
 test = False
-sports = {
-    "NFL": "NFL",
-    "CFL": "CFL",
-    "MLB": "MLB",
-    "NBA": "NBA",
-    "WNBA": "WNBA",
-    "NHL": "NHL",
-    "SC": "SC",
-    "UFC": "UFC",
-    "Boxing": "BX",
-}
+fetchSports = False
+try:
+    with open("betdsi.json") as bfile:
+        sports = json.load(bfile)
+except:
+    fetchSports = True
+    traceback.print_exc()
+    sports = {}
+
+
+def getSports():
+    print("Fetching all sports...")
+    response = requests.post('https://widget-api.livelines.com/api/v1/generalrole/authmodule/auth', headers=headers,
+                             data='{"Key":"Y9w497S9y3CXewKG"}')
+    auth = json.loads(response.text)
+    print("Categories", json.dumps(auth['details']['Categories'], indent=4))
+    data = sports.copy()
+    for cat in auth['details']['Categories']:
+        if cat['Abbreviation'] not in sports.keys():
+            data[cat['Abbreviation']] = cat['Abbreviation']
+    print("Fetched sports", json.dumps(data, indent=4))
+    with open('betdsi.json', 'w') as bfile:
+        json.dump(data, bfile, indent=4)
 
 
 def scrape(auth, cat):
@@ -37,7 +49,8 @@ def scrape(auth, cat):
                 eventjs = {}
                 for participant in event['ListParticipants']:
                     key = f"{participant['RotationNumber']} {participant['Name']}".title()
-                    data = {key: {"Date": str(datetime.strptime(event["Date"], '%Y-%m-%dT%H:%M:%S')+timedelta(hours=3))}}
+                    data = {
+                        key: {"Date": str(datetime.strptime(event["Date"], '%Y-%m-%dT%H:%M:%S') + timedelta(hours=3))}}
                     for lines in participant['ListLines']:
                         if lines['Sportsbook'] == "DSI":
                             if lines['LinesType'] != "Money":
@@ -57,7 +70,7 @@ def scrape(auth, cat):
             else:
                 print(f"No data for {cat['Abbreviation']}")
         else:
-            print("No sports available",cat['Abbreviation'])
+            print("No sports available", cat['Abbreviation'])
     except:
         print("Error", cat['Abbreviation'], response.text)
         traceback.print_exc()
@@ -65,10 +78,12 @@ def scrape(auth, cat):
 
 def main():
     logo()
+    if fetchSports:
+        getSports()
     response = requests.post('https://widget-api.livelines.com/api/v1/generalrole/authmodule/auth', headers=headers,
-                                 data='{"Key":"Y9w497S9y3CXewKG"}')
+                             data='{"Key":"Y9w497S9y3CXewKG"}')
     auth = json.loads(response.text)
-    print("Categories", auth['details']['Categories'])
+    # print("Categories", json.dumps(auth['details']['Categories'], indent=4))
     for cat in auth['details']['Categories']:
         if cat['Abbreviation'] in sports.keys():
             scrape(auth, cat)
@@ -76,7 +91,7 @@ def main():
 
 def logo():
     os.system('color 0a')
-    print("""
+    print(r"""
         ____       __  ____  _____ ____
        / __ )___  / /_/ __ \/ ___//  _/
       / __  / _ \/ __/ / / /\__ \ / /  

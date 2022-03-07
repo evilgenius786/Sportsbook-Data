@@ -1,5 +1,6 @@
 import json
 import os
+import traceback
 from datetime import datetime, timedelta
 
 import requests
@@ -7,17 +8,40 @@ import requests
 test = False
 
 api = 'https://a.ffsvrs.lv:8018/api/lines'
-sports = {
-    "Football/NFL": "NFL",
-    "Baseball/MLB": "MLB",
-    "Football/College": "NCAAF",
-    "Basketball/Germany": "GBBL",
-    "Basketball/NBA": "NBA",
-    "Hockey/NHL": "NHL",
-    "MMA/UFC": "UFC",
-    "Tennis/Mens%20Tennis": "ATP",
-    "Tennis/Womens%20Tennis": "WTA"
-}
+
+fetchSports = False
+sjson = "youwager.json"
+try:
+    with open(sjson) as bfile:
+        sports = json.load(bfile)
+except:
+    fetchSports = True
+    traceback.print_exc()
+    sports = {}
+
+
+def getSports():
+    global sports
+    res = json.loads(requests.get('https://a.ffsvrs.lv:8018/api/sports/active').content)
+    print(json.dumps(res, indent=4))
+    all_sports = {}
+    data = sports.copy()
+    for sport in res:
+        for league in sport['leagues']:
+            key = f"{sport['name']}/{league}"
+            all_sports[key] = getInitial(key.replace("/", " "))
+            if key not in data.keys():
+                data[key] = getInitial(key.replace("/", " "))
+    print(json.dumps(all_sports, indent=4))
+    print(json.dumps(data, indent=4))
+    with open(sjson, 'w') as bfile:
+        json.dump(data, bfile, indent=4)
+    with open(sjson) as bfile:
+        sports = json.load(bfile)
+
+
+def getInitial(msg):
+    return ''.join([x[0] for x in msg.split()])
 
 
 def scrape(sport):
@@ -57,6 +81,9 @@ def scrape(sport):
 
 def main():
     logo()
+    if fetchSports:
+        getSports()
+        input("Done")
     for sport in sports.keys():
         scrape(sport)
 
