@@ -83,7 +83,7 @@ def main():
     logo()
     if fetchSports:
         getSports()
-        input("Done")
+        # input("Done")
     for sport in sports.keys():
         scrape(sport)
 

@@ -11,7 +11,7 @@ headers = {
     'content-type': 'application/json;charset=UTF-8'
 }
 test = False
-fetchSports = False
+fetchSports = True
 try:
     with open("betdsi.json") as bfile:
         sports = json.load(bfile)

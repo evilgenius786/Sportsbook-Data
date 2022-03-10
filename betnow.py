@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from dateutil.parser import parse
 
 url = "https://www.betnow.eu/sportsbook-info/"
-fetchSports = False
+fetchSports = True
 
 
 try:
